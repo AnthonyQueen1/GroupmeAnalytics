@@ -5,6 +5,7 @@ groupme analytics website for datababes group term project
 install node and npm
 
 run these commands: 
+
 to install dependencies:
 ```
 $ npm install 
