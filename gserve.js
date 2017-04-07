@@ -7,5 +7,5 @@ var path    = require('path');
 app.use(require('./routes'));
 
 app.listen(port, function() {
-  	console.log('Listening on port 3001...');
+  	console.log('Listening on port ' + port);
 })
