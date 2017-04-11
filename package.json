@@ -5,6 +5,7 @@
   "main": "gserve.js",
   "dependencies": {
     "express": "^4.15.2",
+    "mysql": "^2.13.0",
     "pug": "^2.0.0-beta11",
     "request": "^2.81.0"
   },

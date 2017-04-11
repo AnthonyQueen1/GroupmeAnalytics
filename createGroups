@@ -1,0 +1,24 @@
+create table groups (
+	group_id INT, 
+	group_name varchar(255),
+	message_id BIGINT,
+	message_length INT,
+	PRIMARY KEY (group_id, message_id)
+);
+
+create table groupwordcount (
+	group_id INT,
+	word varchar(255),
+	count INT,
+	PRIMARY KEY(group_id, word)
+);
+
+create table wordcount (
+	word varchar(255),
+	count int,
+	PRIMARY KEY(word)
+);
+
+
+insert Groups values(123,"Cats",456,14);
+insert into Groups set ? 

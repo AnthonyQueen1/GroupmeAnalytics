@@ -1,0 +1,35 @@
+.result {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.group {
+	padding:8px;
+	width:130px;
+	display: flex;
+	margin:8px;
+	flex-direction: row;
+}
+
+.group-checkbox {
+	display: none;
+}
+
+.group--info {
+	display: flex;
+	margin: auto;
+	flex-direction: column;
+}
+.group--image {
+	margin: auto;
+	height: 120px;
+	width: 120px;
+}
+.group--info-name {
+	margin: auto;
+}
+
+.grayOut {
+	opacity:0.7;
+	background-color:  #5A5A5A;
+}

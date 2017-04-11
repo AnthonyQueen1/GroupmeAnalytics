@@ -4,8 +4,9 @@ var port 	= process.env.PORT || 3001;
 var path    = require('path');
 
 // uses the routes.js file
+app.use('/groupme', express.static(path.join(__dirname, 'public')));
 app.use(require('./routes'));
 
 app.listen(port, function() {
   	console.log('Listening on port ' + port);
-})
+});
