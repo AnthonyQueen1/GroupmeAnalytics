@@ -12,11 +12,16 @@ router.get('/groupme/user', function(req, res) {
 	names = ['SAC']
 	ids = [10311087]
 	token = '3VjvkSVgcjfhybCNnyIYjw7l8rw0QTfdQPYnEYa1';
-	db.getdata(names, ids, token, "");
 	// send user back to homepage after logging in
-	// res.redirect('/groupme/pug');
 	res.sendFile(path.join(__dirname, '/public/user.html'));
  });
+
+router.post('/groupme/api/get-all-word-counts/', function(req, res){
+	console.log('names: ' + req.body.names);
+	console.log('ids: ' + req.body.ids);
+	console.log('token: ' + req.body.token);
+	// db.getdata(req.body.names, req.body.ids, req.body.token, "");
+});
 
 router.get('/groupme/', function(req, res) {
 	res.sendFile(path.join(__dirname, '/public/index.html'));

@@ -1,12 +1,17 @@
 // dbconnect.js
 var request = require('request');
 var mysql = require("mysql");
-var url = "https://api.groupme.com/v3";
-var getGroups = "/groups";
-var getMessage = "/messages";
-var duplicate = false;
+var last_id = '';
+var last_word = '';
+var message_count = 0;
 
-var con = mysql.createConnection({
+//timing stuff
+var t0 = ''
+var t1 = ''
+
+
+var pool = mysql.createPool({
+  connectionLimit: 100,
   host: "localhost",
   user: "root",
   password: "theradio",
@@ -15,27 +20,31 @@ var con = mysql.createConnection({
 
 
 var getdata = function (names, ids, token){
-
-		for (var i=0; i<ids.length; i++){
-			add_all_msg_to_db(names[i], ids[i], token, "");
-		}
+	for (var i=0; i<ids.length; i++){
+		add_all_msg_to_db(names[i], ids[i], token, "");
+	}
 };
 
 
 // params: name: group name, id: group id, token: access token, lastmessageid: id of last message inserted to db
 var add_all_msg_to_db = function(name, id, token, lastmessageid) {
-	console.log('===========getting messages from groupme api============');
+	// console.log('===========getting messages from groupme api============');
 	var requrl = 'https://api.groupme.com/v3/groups/'+ id + '/messages?token=' + token;
 	var formdata = (lastmessageid) ? requrl + '&before_id=' + lastmessageid : requrl;	
 	var final_message_id = '';
 	// get 20 messages
-	request.get(formdata, function (error, response, body) {
-		if (error) console.log('error:', error);
-		console.log('statusCode:', response && response.statusCode);
+	request.get(formdata, function (err, response, body) {
+		if (err) console.log('Error:', err);
+		//console.log('statusCode:', response && response.statusCode);
 		messageData = JSON.parse(body);
+		if(message_count == 0) {
+			t0 = new Date().getTime();
+			message_count = messageData.response.count;
+			console.log("First Message: " + message_count + " to go")
+		}
 		for (var i=0; i<messageData.response.messages.length; i++){
 			select_message(name, id, messageData.response.messages[i]);
-			//console.log(messageData.response.messages[i]);
+			message_count--
 			if (i==19){
 				add_all_msg_to_db(name, id, token, messageData.response.messages[i].id);
 			}
@@ -45,69 +54,89 @@ var add_all_msg_to_db = function(name, id, token, lastmessageid) {
 
 
 function select_message(name, id, message) {
-	con.query('select group_id, message_id from groups where group_id = '+ id + ' and message_id = ' + message.id, 
-		function(err, rows){
-			if(err) console.log(err);
-			if(rows.length == 0) {
-				insert_data(name, id, message);
-			} 
-		}
-	);
+	pool.getConnection(function(err, con) {
+		if(err) console.log(err)
+		console.log('connected as id ' + con.threadId);
+		con.query('select group_id, message_id from groups where group_id = '+ id + ' and message_id = ' + message.id, 
+			function(err, rows){
+				if(err) console.log(err);
+				con.release();
+				
+				if(rows.length == 0) {
+					insert_data(name, id, message);
+				}
+				if(message_count == 0) {
+					console.log("Last Message")
+					t1 = new Date().getTime();
+					console.log("Call to add_all_msg_to_db took " + (t1 - t0)/1000 + " seconds.")
+				}
+			}
+		);
+	});
 }
 
 function insert_data(name, id, message) {
-	console.log('===== beginning inserts =====')
+	// console.log('===== beginning inserts =====');
 	var words = []
 	if(message.attachments[0] && message.attachments[0].type == "image"){ 
 		words[0] = message.attachments[0].url;
 	} else{
-		if (message.text) {
-			var txt = message.text.toLowerCase().replace(/[^0-9a-z ]/, '');
-			// console.log(txt);
-
-			words = txt.split(/[ +]/).filter(Boolean);
-			console.log('words: ' + words);
-		}
+		words = message.text.toLowerCase().replace(/[^0-9a-zA-Z+ ]/g, '').split(/[ +]/).filter(Boolean);
 	}
-	var grouptuple = {group_id: id, group_name: name, message_id: message.id, message_length: words.length};
-	con.query('INSERT INTO groups SET ?', grouptuple, function(err){
-		if (err) console.log(err);
-	});
-	for(var i=0; i<words.length; i++) {
-		console.log(words[i]);
-		con.query('Select * from groupwordcount where group_id=' + id + ' and word=\'' + words[i] + '\'', 
-			function(err, rows) {
+	if (words){
+		pool.getConnection(function(err, con) {
+			if(err) console.log(err)
+			var grouptuple = {group_id: id, group_name: name, message_id: message.id, message_length: words.length};
+			con.query('INSERT INTO groups SET ?', grouptuple, function(err){
 				if (err) console.log(err);
-				if(rows.length == 0) {
-					insert_group_word(name, id, words[i]);
-				} else{
-					increment_group_word(name, id, words[i]);
-				}
+				connection.release();
+				
+			});
+			for(var i=0; i<words.length; i++) {
+				select_words_gwc(name, id, words[i]);
+				if(i==words.length-1 && message.id == last_id)
+					last_word = words[i]
 			}
-		);
-		/*
-		con.query('Select * from wordcount where word=' + words[i], 
-			function(err, rows) {
-				if(rows.length == 0)
-					insertWord(words[i])
-				else
-					incrementWord(words[i])
-
-			}
-		);
-		*/
+		});
 	}
 }
 
+function select_words_gwc(name, id, word){
+	pool.getConnection(function(err, con) {
+		if(err) console.log(err)
+		con.query('Select * from groupwordcount where group_id=' + id + ' and word=\'' + word + '\'', 
+			function(err, rows) {
+				if (err) console.log(err);
+				connection.release();
+				
+				if(rows.length == 0) {
+					// console.log('inside query: ' + word);
+					insert_group_word(name, id, word);
+				} else{
+					if(last_word == word) 
+						console.log("finished")
+					// increment_group_word(name, id, word);
+				}
+			}
+		);
+	});
+}
+
 function insert_group_word(name, id, word) {
-	grouptuple = {group_id: id, word: word, count: 1};
-	con.query('insert groupwordcount set ?', grouptuple, function(err){
-		if(err) console.log(err);
+	// console.log('=== inserting '+word+' into groupwordcount === ');
+	pool.getConnection(function(err, con) {
+		if(err) console.log(err)
+		grouptuple = {group_id: id, word: word, count: 1};
+		con.query('insert groupwordcount set ? ON DUPLICATE KEY UPDATE count = count + 1;', grouptuple, function(err, result){
+			if(err) console.log(err);
+			if(result && word == last_word)
+					console.log(result)
+		});
 	});
 }
 
 function increment_group_word(name, id, word) {
-	con.query('update groupwordcount count = count + 1 where word='+word+ ' and group_id=' + id, function(err){
+	con.query('update groupwordcount set count = count + 1 where word='+word+ ' and group_id=' + id, function(err){
 		if (err) console.log(err);
 	});
 }
