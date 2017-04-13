@@ -1,30 +1,20 @@
 // dbconnect.js
+var processor = require('./messageProcessor')
 var request = require('request');
 var mysql = require("mysql");
-var last_id = '';
-var last_word = '';
-var message_count = 0;
 
-//timing stuff
-var t0 = ''
-var t1 = ''
-
-
-var pool = mysql.createPool({
-  connectionLimit: 100,
-  host: "localhost",
-  user: "root",
-  password: "theradio",
-  database: "groupme"
-});
+var processes = []
 
 
 var getdata = function (names, ids, token){
 	for (var i=0; i<ids.length; i++){
-		add_all_msg_to_db(names[i], ids[i], token, "");
+		processes.push(new processor.messageProcessor(names[i], ids[i], token));
 	}
 };
 
+
+
+//Old CODE
 
 // params: name: group name, id: group id, token: access token, lastmessageid: id of last message inserted to db
 var add_all_msg_to_db = function(name, id, token, lastmessageid) {
@@ -89,14 +79,16 @@ function insert_data(name, id, message) {
 			var grouptuple = {group_id: id, group_name: name, message_id: message.id, message_length: words.length};
 			con.query('INSERT INTO groups SET ?', grouptuple, function(err){
 				if (err) console.log(err);
-				connection.release();
+				con.release();
 				
 			});
+			/*
 			for(var i=0; i<words.length; i++) {
 				select_words_gwc(name, id, words[i]);
 				if(i==words.length-1 && message.id == last_id)
 					last_word = words[i]
 			}
+			*/
 		});
 	}
 }
@@ -107,7 +99,7 @@ function select_words_gwc(name, id, word){
 		con.query('Select * from groupwordcount where group_id=' + id + ' and word=\'' + word + '\'', 
 			function(err, rows) {
 				if (err) console.log(err);
-				connection.release();
+				con.release();
 				
 				if(rows.length == 0) {
 					// console.log('inside query: ' + word);

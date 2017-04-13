@@ -1,33 +1,24 @@
 var express = require('express');
 var router  = express.Router();
 var path    = require('path');
-var db 		= require('./dbconnect');
+var dbcon 	= require('./dbconnect');
+var dbget	= require('./dbget');
 
 router.get('/groupme/user', function(req, res) {
-	// get the token from the url on redirect
-	// token = req.url.replace('/groupme/api?access_token=', "");
-
-	// console.log('access Token: ' + token);
-	// (name, ids, token)
-	names = ['SAC']
-	ids = [10311087]
-	token = '3VjvkSVgcjfhybCNnyIYjw7l8rw0QTfdQPYnEYa1';
-	// send user back to homepage after logging in
 	res.sendFile(path.join(__dirname, '/public/user.html'));
  });
 
 router.post('/groupme/api/get-all-word-counts/', function(req, res){
-	console.log('names: ' + req.body.names);
-	console.log('ids: ' + req.body.ids);
-	console.log('token: ' + req.body.token);
-	// db.getdata(req.body.names, req.body.ids, req.body.token, "");
+	dbcon.getdata(req.body.names, req.body.ids, req.body.token, "");
 });
 
 router.get('/groupme/', function(req, res) {
 	res.sendFile(path.join(__dirname, '/public/index.html'));
 });
 
-
+router.get('/groupme/api/get-group-word-counts', function(req, res){
+	console.log(req.body);
+});
 
 
 module.exports = router;

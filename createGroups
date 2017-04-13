@@ -1,7 +1,8 @@
+drop table groups;
 create table groups (
 	group_id INT, 
 	group_name varchar(255),
-	message_id BIGINT,
+	message_id varchar(32),
 	message_length INT,
 	PRIMARY KEY (group_id, message_id)
 );
@@ -19,6 +20,7 @@ create table wordcount (
 	PRIMARY KEY(word)
 );
 
-
 insert Groups values(123,"Cats",456,14);
 insert into Groups set ? 
+
+select * from groupwordcount where group_id = 1 order by count desc limit 100;
