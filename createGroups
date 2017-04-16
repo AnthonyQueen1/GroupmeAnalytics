@@ -1,4 +1,7 @@
 drop table groups;
+drop table groupwordcount;
+drop table wordcount;
+
 create table groups (
 	group_id INT, 
 	group_name varchar(255),
@@ -19,6 +22,10 @@ create table wordcount (
 	count int,
 	PRIMARY KEY(word)
 );
+
+select * from groups limit 100;
+select * from groupwordcount limit 100;
+select * from wordcount limit 100;
 
 insert Groups values(123,"Cats",456,14);
 insert into Groups set ? 
