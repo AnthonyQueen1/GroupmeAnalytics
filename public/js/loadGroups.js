@@ -41,7 +41,7 @@ function loadGroups(token) {
 					$.post('/groupme/api/get-all-word-counts/', to_send);
 					
 					//redirects
-					//window.location.replace("/groupme");
+					window.location.replace("/groupme");
 				}
 			});
 		}
