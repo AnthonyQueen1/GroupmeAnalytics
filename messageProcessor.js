@@ -1,5 +1,5 @@
-var request = require('request');
-var mysql = require("mysql");
+// messageProcessor.js
+var connection = require('./dbConnector.js')
 
 function messageProcessor(name, id, token) {
     this.name = name;
@@ -9,14 +9,6 @@ function messageProcessor(name, id, token) {
 	this.messages = {};
 	this.words = {};
 	this.insertCount = 0;
-	this.insertFinished = 0;
-	
-	this.connection = mysql.createConnection({
-		host: "localhost",
-		user: "root",
-		password: "theradio",
-		database: "groupme"
-	});
 	this.getAllMessages('');
 	
 	//debugging
@@ -25,14 +17,9 @@ function messageProcessor(name, id, token) {
 	this.t1 = 0;	
 }
 
+
 messageProcessor.prototype.getAllMessages = function(lastmessageid) {
-	var requrl = 'https://api.groupme.com/v3/groups/'+ this.id + '/messages?token=' + this.token + '&limit=100';
-	var formdata = (lastmessageid) ? requrl + '&before_id=' + lastmessageid : requrl;
-	var self = this;
-	request.get(formdata, function(err, res, data) {
-		if (err) console.log(err)
-		self.addGMMessagesToList(JSON.parse(data));
-	})
+	connection.getAllMessages(this, lastmessageid, this.addGMMessagesToList);
 }
 
 messageProcessor.prototype.addGMMessagesToList = function(data) {
@@ -46,9 +33,12 @@ messageProcessor.prototype.addGMMessagesToList = function(data) {
 			this.messages[data.response.messages[i].id.toString()] = data.response.messages[i];
 			if(this.message_count == 0) {
 				this.t1 = new Date().getTime();
-				if(this.debug) console.log("Getting groupme messages took ",(this.t1-this.t0)/1000, " seconds")
+				if(this.debug) {
+					console.log("Getting groupme messages took ",(this.t1-this.t0)/1000, " seconds")
+					this.t0 = new Date().getTime();
+				}
 				//Step 2 Filtering
-				this.getDBMessageList();
+				connection.getGroupMessages(this, this.filterDBMessages);
 			}
 				
 			if (i==data.response.messages.length-1 && this.message_count > 0) 
@@ -56,36 +46,25 @@ messageProcessor.prototype.addGMMessagesToList = function(data) {
 		}		
 }
 
-messageProcessor.prototype.getDBMessageList = function() {
-	var self = this
-	this.t0 = new Date().getTime();
-	this.connection.query('select * from groups where group_id = '+ this.id, 
-		function(err, res, data) {
-			if(err)
-				console.log(err)
-			else {
-				self.t1 =new Date().getTime();
-				if(self.debug)  console.log("Getting db messages took " + (self.t1-self.t0)/1000 + " seconds")
-				self.filterDBMessages(res);
-				
-			}
-		}
-	);
-}
-
 messageProcessor.prototype.filterDBMessages = function(res) {
-	this.t0 = new Date().getTime()
-	console.log("Remove these " + res.length + " messages")
+	if(this.debug) {
+		console.log("Remove these " + res.length + " messages")		
+		this.t0 = new Date().getTime()
+	}
+	
+	//Remove duplicate messages
 	for(var i=0; i<res.length; i++) {
 		if(typeof this.messages[res[i].message_id] != 'undefined')
 			delete this.messages[res[i].message_id];
 	}
 	
-	console.log("Message to insert count: " + Object.keys(this.messages).length)
+	if(this.debug)  {
+		console.log("Filtering messages took ",(this.t1-this.t0)/1000, " seconds") 
+		this.t1 = new Date().getTime();
+		console.log("Message to insert count: " + Object.keys(this.messages).length)	
+	}
 	
-	this.t1 = new Date().getTime();
-	if(this.debug) console.log("Filtering messages took ",(this.t1-this.t0)/1000, " seconds")
-
+	//Count Words to insert
 	var keys = Object.keys(this.messages);
 	
 	this.t0 = new Date().getTime();
@@ -93,13 +72,16 @@ messageProcessor.prototype.filterDBMessages = function(res) {
 		this.countWords(this.messages[keys[i]])
 	}
 	
-	this.t1 = new Date().getTime();
-	if(this.debug) console.log("Counting words took ",(this.t1-this.t0)/1000, " seconds")
-		
-	this.t0 = new Date().getTime();
+	if(this.debug) {
+		this.t1 = new Date().getTime();
+		console.log('Counting ' + Object.keys(this.words).length + ' words took ' + (this.t1-this.t0)/1000 + " seconds")
+		this.t0 = new Date().getTime();
+	}
+
 	this.insertWords();
-	this.t1 = new Date().getTime();
-	if(this.debug) console.log("Inserting counted words took ",(this.t1-this.t0)/1000, " seconds\n")
+	
+	if(this.debug) this.t0 = new Date().getTime();
+	this.insertMessages();
 }
 
 messageProcessor.prototype.countWords = function(message) {
@@ -119,85 +101,60 @@ messageProcessor.prototype.countWords = function(message) {
 				this.words[words[i]]++;
 		}
 		
-		this.insertMessage(message, words.length);
+		this.messages[message.id].length = words.length;
+		
+		//connection.insertMessage(this, message, words.length);
 	}
-}
-
-messageProcessor.prototype.insertMessage = function(message, length) {
-	grouptuple = { group_id: this.id, group_name: this.name, message_id: message.id, message_length: length}
-	this.connection.query('INSERT groups SET ?', grouptuple, function(err) {
-		if(err) console.log(err)
-	});
 }
 
 messageProcessor.prototype.insertWords = function() {
 	var keys = Object.keys(this.words)
-	
 	this.insertCount = keys.length
-	this.t0 = new Date().getTime()
 	
-	var bulk_insert_words = [];
+	var bulk_words = [];
 	for(var i=0; i<keys.length; i++) {
 		var temp_tuple = [];
 		temp_tuple.push(keys[i]);
 		temp_tuple.push(this.words[keys[i]]);
-		bulk_insert_words.push(temp_tuple);
-		// bulk_insert_words_gwc.push(temp_tuple);
-		// var grouptuple = { group_id: this.id, word: keys[i], count: this.words[keys[i]] };
-		// this.insert_word_gwc(grouptuple, grouptuple.count);
-		// wordtuple = { word: keys[i], count: this.words[keys[i]] };
-		// this.insert_word(wordtuple, wordtuple.count);
+		bulk_words.push(temp_tuple);			
+	}			
+	
+	if (bulk_words.length > 0) {
+		connection.insertBulkWords(this, bulk_words);
 	}
-	// for (var i=0; i < bulk_insert_words.length; i++) {
-	// 	bulk_insert_words_gwc[i].push(this.id);
-	// }
-	// console.log(bulk_insert_words_gwc);
-	if (bulk_insert_words.length > 0) {
-		console.log(bulk_insert_words);
-		// this.insert_word_gwc(bulk_insert_words_gwc);
-		this.insert_word(bulk_insert_words);
-	}
-	var bulk_insert_words_gwc = [];
+	
+	var bulk_group_words = [];
 
-	// something weird happens with doing two arrays at once
 	for(var i=0; i<keys.length; i++) {
 		var temp_tuple = [];
+		temp_tuple.push(parseInt(this.id));
 		temp_tuple.push(keys[i]);
 		temp_tuple.push(this.words[keys[i]]);
-		temp_tuple.push(this.id);
-		bulk_insert_words_gwc.push(temp_tuple);
+		bulk_group_words.push(temp_tuple);
 	}
-
-	if(bulk_insert_words_gwc.length > 0){
-		this.insert_word_gwc(bulk_insert_words_gwc);
+	if(bulk_group_words.length > 0) {
+		connection.insertBulkGroupWords(this, bulk_group_words);
 	}
 }
 
-messageProcessor.prototype.insert_word_gwc = function(grouptuple) {
-	this.connection.query('INSERT INTO groupwordcount (word, count, group_id) VALUES  ? ON DUPLICATE KEY UPDATE count = count + VALUES(count)', [grouptuple], function(err){
-			if (err) console.log(err);
-		});
+messageProcessor.prototype.insertMessages = function() {
+	var keys = Object.keys(this.messages)
+	
+	var bulk_messages = [];
+	
+	for(var i=0; i<keys.length; i++) {
+		var temp_tuple = [];
+		temp_tuple.push(parseInt(this.id));
+		temp_tuple.push(this.name)
+		temp_tuple.push(keys[i]);
+		temp_tuple.push(this.messages[keys[i]].length);
+		bulk_messages.push(temp_tuple);			
+	}			
+	
+	if (bulk_messages.length > 0) 
+		connection.insertBulkMessages(this, bulk_messages);
+	
 }
-
-messageProcessor.prototype.insert_word = function(wordtuple){
-	this.connection.query('INSERT wordcount (word, count) VALUES ? ON DUPLICATE KEY UPDATE count = count + VALUES(count)', [wordtuple], function(err) {
-			if(err) console.log(err)
-		});
-}
-// messageProcessor.prototype.insert_word = function(wordtuple){
-// 	var self = this;
-// 	this.connection.query('INSERT wordcount SET ? ON DUPLICATE KEY UPDATE count = count + ' + count, wordtuple, function(err) {
-// 			if(err) console.log(err)
-// 			else {
-// 				self.insertFinished ++;
-// 				if(self.insertFinished == self.insertCount ) {
-// 					console.log("Finished inserting " + self.insertCount + " words")
-// 					self.t1 = new Date().getTime()
-// 					console.log("Inserting words took "  + (self.t1-self.t0)/1000 + " seconds")
-// 				}
-// 			}
-// 		});
-// }
 
 module.exports = {
 		messageProcessor: messageProcessor
