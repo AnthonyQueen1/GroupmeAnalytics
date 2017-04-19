@@ -20,7 +20,6 @@ dbConnector.prototype.getAllMessages = function(object, lastmessageid, callback)
 	})
 }
 
-
 dbConnector.prototype.getGroupMessages = function(object, callback) {
 	this.connection.query('select * from groups where group_id = '+ object.id, 
 		function(err, res, data) {
@@ -86,5 +85,18 @@ dbConnector.prototype.getMostCommonWords = function(limit, callback) {
 		callback.call(err, res);
 	});
 }
+
+dbConnector.prototype.get_most_common_words = function(id, limit, callback) {
+	var limit = (limit<=500) ? limit: 25;
+	if (id == 'all'){
+		this.connection.query('SELECT * FROM wordcount ORDER BY count DESC LIMIT '+ limit, callback);
+	} else {
+		this.connection.query('SELECT word, count FROM groupwordcount WHERE group_id = ' + id + ' ORDER BY count DESC LIMIT ' + limit, callback);
+	}
+}
+
+dbConnector.prototype.get_group_list = function(callback) {
+	this.connection.query('SELECT DISTINCT group_id, group_name FROM groups', callback);
+};
 
 module.exports = new dbConnector();

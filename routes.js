@@ -1,8 +1,9 @@
-var express = require('express');
-var router  = express.Router();
-var path    = require('path');
+var express 			= require('express');
+var router  			= express.Router();
+var path    			= require('path');
 var uploadGroupData 	= require('./uploadGroupData');
-var getWordCounts = require('./getWordCounts')
+var getWordCounts 		= require('./getWordCounts');
+var connection			= require('./dbConnector');
 
 router.get('/groupme/user', function(req, res) {
 	res.sendFile(path.join(__dirname, '/public/user.html'));
@@ -16,8 +17,22 @@ router.get('/groupme/', function(req, res) {
 	res.sendFile(path.join(__dirname, '/public/index.html'));
 });
 
-router.get('/groupme/api/get-group-word-counts', function(req, res){
-	console.log(req.body);
+router.get('/groupme/api/most-used-words/:id/:num', function(req, res){
+	connection.get_most_common_words(req.params.id, req.params.num, function(err, data){
+		if (err) { console.log(err);
+		} else {
+			res.json(data);
+		}
+	});
+});
+
+router.get('/groupme/api/group-list', function(req, res){
+	connection.get_group_list(function(err, data) {
+		if(err) { console.log(err);
+		} else {
+			res.json(data);
+		}
+	});
 });
 
 router.get('/groupme/api/getCommonWords:limit?', getWordCounts.getMostCommonWords);
