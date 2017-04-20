@@ -29,6 +29,14 @@ function loadGroups(token) {
 				}
 			});
 			
+			$("#select-all").click(function() {
+				var groups = $(".group");
+				for(var i=0; i<groups.length; i++) {
+					if(!$(groups[i]).hasClass("grayOut"))
+						$(groups[i]).addClass("grayOut")
+				}
+			});
+			
 			$("#submit-button").click(function(){
 				var groups = $('.grayOut');
 				if(groups.length != 0){

@@ -97,24 +97,24 @@ dbConnector.prototype.insertBulkGroupWords = function(object, grouptuples) {
 
 dbConnector.prototype.getMostCommonWords = function(limit, callback) {
 	var limit = (limit<=500) ? limit: 10;
-	this.connection.query('SELECT * FROM wordcount ORDER BY count DESC LIMIT '+ limit, callback);
+	this.connection.query('SELECT * FROM wordcount ORDER BY count DESC, word ASC LIMIT '+ limit, callback);
 }
 
 dbConnector.prototype.getMostUsedWords = function(id, limit, callback) {
 	var limit = (limit<=500) ? limit: 25;
 	if (id == 'all'){
-		this.connection.query('SELECT * FROM wordcount ORDER BY count DESC LIMIT '+ limit, callback);
+		this.connection.query('SELECT * FROM wordcount ORDER BY count DESC, word ASC LIMIT '+ limit, callback);
 	} else {
-		this.connection.query('SELECT word, count FROM groupwordcount WHERE group_id = ' + id + ' ORDER BY count DESC LIMIT ' + limit, callback);
+		this.connection.query('SELECT word, count FROM groupwordcount WHERE group_id = ' + id + ' ORDER BY count DESC, word ASC LIMIT ' + limit, callback);
 	}
 }
 
 dbConnector.prototype.filterOutCommonCase = function(id, limit, callback){
 	var limit = (limit<=500) ? limit: 25;
 	if (id == 'all'){
-		this.connection.query('SELECT wc.word, wc.count FROM wordcount wc LEFT JOIN commonCase cc ON wc.word = cc.common_word WHERE cc.common_word IS NULL ORDER BY wc.count DESC LIMIT '+ limit, callback);
+		this.connection.query('SELECT wc.word, wc.count FROM wordcount wc LEFT JOIN commonCase cc ON wc.word = cc.common_word WHERE cc.common_word IS NULL ORDER BY wc.count DESC, word ASC LIMIT '+ limit, callback);
 	} else {
-		this.connection.query('SELECT gwc.word, gwc.count, gwc.group_id FROM groupwordcount gwc LEFT JOIN commonCase cc ON gwc.word = cc.common_word WHERE cc.common_word IS NULL AND gwc.group_id = ' + id + ' ORDER BY gwc.count DESC LIMIT ' + limit, callback);
+		this.connection.query('SELECT gwc.word, gwc.count, gwc.group_id FROM groupwordcount gwc LEFT JOIN commonCase cc ON gwc.word = cc.common_word WHERE cc.common_word IS NULL AND gwc.group_id = ' + id + ' ORDER BY gwc.count DESC, word ASC LIMIT ' + limit, callback);
 	}
 }
 

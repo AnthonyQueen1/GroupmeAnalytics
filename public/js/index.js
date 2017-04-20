@@ -35,14 +35,8 @@ var fillTable = function() {
 
 var fillTableHelp = function(data){
 	for (var i=0; i<data.length; i++) {
-			
-			var pattern = /^((http|https|ftp):\/\/)/;
 			var string = "<tr><td> " + (i+1) + "</td><td>" 
-			if(pattern.test(data[i].word)) {
-				string += '<a href=\'' +data[i].word+'\' >' + data[i].word + '</a>';
-			} else { 
-				string += data[i].word;
-			}
+			string += data[i].word;
 			string += "</td><td> " + data[i].count + "</td></tr>";
 			$('#table-body').append(string);
 		}

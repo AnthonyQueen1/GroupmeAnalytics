@@ -94,13 +94,8 @@ groupProcessor.prototype.filterDBMessages = function(res) {
 
 groupProcessor.prototype.countWords = function(message) {
 	var words = []
-	if (message.text || message.attachments[0]){
-		if(message.attachments[0] && message.attachments[0].type == "image") {
-			words[0] = message.attachments[0].url;
-		}
-		if (message.text) {
-			words = message.text.toLowerCase().replace(/[^0-9a-zA-Z+ ]/g, '').split(/[ +]/).filter(Boolean);
-		}
+	if (message.text){
+		words = message.text.toLowerCase().replace(/[^0-9a-zA-Z+ ]/g, '').split(/[ +]/).filter(Boolean);
 		
 		for(var i=0; i<words.length; i++) {
 			if(typeof this.words[words[i]] == 'undefined')
