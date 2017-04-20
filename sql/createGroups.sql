@@ -57,3 +57,18 @@ insert Groups values(123,"Cats",456,14);
 insert into Groups set ? 
 
 select * from groupwordcount where group_id = 1 order by count desc limit 100;
+
+# get top words while removing common words
+SELECT wc.word, wc.count
+FROM wordcount wc LEFT JOIN commonCase cc
+ON wc.word = cc.common_word
+WHERE cc.common_word IS NULL
+ORDER BY wc.count DESC LIMIT 10;
+
+# get top words by group while removing common words
+SELECT gwc.word, gwc.count, gwc.group_id
+FROM groupwordcount gwc 
+LEFT JOIN commonCase cc
+ON gwc.word = cc.common_word
+WHERE cc.common_word IS NULL AND gwc.group_id = 1
+ORDER BY gwc.count DESC LIMIT 10;

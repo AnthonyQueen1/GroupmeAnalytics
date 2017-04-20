@@ -9,36 +9,41 @@ $(function(){
 	});
 	
 	// on startup
-	fill_table();
+	fillTable();
 
 	$('.selector').change(function(){
-		fill_table();
+		fillTable();
 	})
 
-	$('#refresh-table').click(function(){
-		fill_table();
-	});
+	$('#remove-common')
 });
 
-var fill_table = function() {
-	var id = $('#groups-dropdown').val();
-	var num = $('#num-rows').val();
-	cur_group_name = $('#groups-dropdown').find(':selected').text();
+var fillTable = function() {
+	var id 				= $('#groups-dropdown').val();
+	var num 			= $('#num-rows').val();
+	var cur_group_name 	= $('#groups-dropdown').find(':selected').text();
+	var remove_common	= $('#chk-remove-common')[0].checked;
 
 	$("#table-body tr").remove();
 
-	$.get('/groupme/api/word-counts/'+ id + '/' + num, function(data) {
-		console.log (data)
-		for (var i=0; i<data.length; i++) {
+	if (remove_common){
+		$.get('/groupme/api/word-counts/'+ id + '/' + num + '/common', fillTableHelp);
+	} else {
+		$.get('/groupme/api/word-counts/'+ id + '/' + num, fillTableHelp);
+	}
+}
+
+var fillTableHelp = function(data){
+	for (var i=0; i<data.length; i++) {
 			
 			var pattern = /^((http|https|ftp):\/\/)/;
 			var string = "<tr><td> " + (i+1) + "</td><td>" 
-			if(pattern.test(data[i].word)) 
+			if(pattern.test(data[i].word)) {
 				string += '<a href=\'' +data[i].word+'\' >' + data[i].word + '</a>';
-			else 
+			} else { 
 				string += data[i].word;
+			}
 			string += "</td><td> " + data[i].count + "</td></tr>";
 			$('#table-body').append(string);
 		}
-	});
 }

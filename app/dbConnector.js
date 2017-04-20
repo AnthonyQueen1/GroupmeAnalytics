@@ -109,8 +109,13 @@ dbConnector.prototype.getMostUsedWords = function(id, limit, callback) {
 	}
 }
 
-dbConnector.prototype.filterOutCommonCase = function(callback){
-	this.connection.query('SELECT wc.word FROM commonCase c, wordcount wc WHERE c.common_word != wc.word', callback);
+dbConnector.prototype.filterOutCommonCase = function(id, limit, callback){
+	var limit = (limit<=500) ? limit: 25;
+	if (id == 'all'){
+		this.connection.query('SELECT wc.word, wc.count FROM wordcount wc LEFT JOIN commonCase cc ON wc.word = cc.common_word WHERE cc.common_word IS NULL ORDER BY wc.count DESC LIMIT '+ limit, callback);
+	} else {
+		this.connection.query('SELECT gwc.word, gwc.count, gwc.group_id FROM groupwordcount gwc LEFT JOIN commonCase cc ON gwc.word = cc.common_word WHERE cc.common_word IS NULL AND gwc.group_id = ' + id + ' ORDER BY gwc.count DESC LIMIT ' + limit, callback);
+	}
 }
 
 dbConnector.prototype.getGroupList = function(callback) {

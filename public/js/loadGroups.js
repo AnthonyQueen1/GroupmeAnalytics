@@ -37,7 +37,8 @@ function loadGroups(token) {
 						to_send.ids.push(data.response[groups[j].id].group_id);
 						to_send.names.push(data.response[groups[j].id].name);
 					}
-					$.post('/groupme/api/word-counts/', to_send);
+					console.log(to_send)
+					$.post('/groupme/api/word-counts', to_send);
 					
 					//redirects
 					window.location.replace("/groupme");

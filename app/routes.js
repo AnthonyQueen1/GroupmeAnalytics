@@ -12,7 +12,8 @@ router.get('/groupme/user', function(req, res) {
 	res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-router.post('/groupme/api/word-counts/', function(req, res) {
+router.post('/groupme/api/word-counts', function(req, res) {
+	console.log('getting request for wordcounts: '+ req.body);
 	processor.uploadData(req.body.names, req.body.ids, req.body.token)
 });
 

@@ -4,6 +4,7 @@ var connection = require('./dbConnector.js')
 var processes = []
 
 var uploadData = function (names, ids, token) {
+	console.log('Processing groups: '+ names)
 	for (var i=0; i<ids.length; i++){
 		processes.push(new groupProcessor(names[i], ids[i], token));
 	}
