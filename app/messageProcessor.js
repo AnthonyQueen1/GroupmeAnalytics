@@ -1,7 +1,15 @@
-// messageProcessor.js
+// groupProcessor.js
 var connection = require('./dbConnector.js')
 
-function messageProcessor(name, id, token) {
+var processes = []
+
+var uploadData = function (names, ids, token) {
+	for (var i=0; i<ids.length; i++){
+		processes.push(new groupProcessor(names[i], ids[i], token));
+	}
+};
+
+function groupProcessor(name, id, token) {
     this.name = name;
     this.id = id;
     this.token = token;
@@ -17,14 +25,14 @@ function messageProcessor(name, id, token) {
 	this.t1 = 0;	
 }
 
-
-messageProcessor.prototype.getAllMessages = function(lastmessageid) {
+groupProcessor.prototype.getAllMessages = function(lastmessageid) {
 	connection.getAllMessages(this, lastmessageid, this.addGMMessagesToList);
 }
 
-messageProcessor.prototype.addGMMessagesToList = function(data) {
+groupProcessor.prototype.addGMMessagesToList = function(data) {
 		if(this.message_count == 0) {
 			this.message_count = data.response.count;
+			connection.insertGroup(this, [parseInt(this.id), this.name, this.message_count])
 			if(this.debug) console.log("Meesages to get: ",this.message_count)
 		}
 	
@@ -46,7 +54,7 @@ messageProcessor.prototype.addGMMessagesToList = function(data) {
 		}		
 }
 
-messageProcessor.prototype.filterDBMessages = function(res) {
+groupProcessor.prototype.filterDBMessages = function(res) {
 	if(this.debug) {
 		console.log("Remove these " + res.length + " messages")		
 		this.t0 = new Date().getTime()
@@ -79,12 +87,11 @@ messageProcessor.prototype.filterDBMessages = function(res) {
 	}
 
 	this.insertWords();
-	
-	if(this.debug) this.t0 = new Date().getTime();
+	this.insertGroupWords();
 	this.insertMessages();
 }
 
-messageProcessor.prototype.countWords = function(message) {
+groupProcessor.prototype.countWords = function(message) {
 	var words = []
 	if (message.text || message.attachments[0]){
 		if(message.attachments[0] && message.attachments[0].type == "image") {
@@ -102,12 +109,10 @@ messageProcessor.prototype.countWords = function(message) {
 		}
 		
 		this.messages[message.id].length = words.length;
-		
-		//connection.insertMessage(this, message, words.length);
 	}
 }
 
-messageProcessor.prototype.insertWords = function() {
+groupProcessor.prototype.insertWords = function() {
 	var keys = Object.keys(this.words)
 	this.insertCount = keys.length
 	
@@ -119,12 +124,14 @@ messageProcessor.prototype.insertWords = function() {
 		bulk_words.push(temp_tuple);			
 	}			
 	
-	if (bulk_words.length > 0) {
+	if (bulk_words.length > 0) 
 		connection.insertBulkWords(this, bulk_words);
-	}
+}
+	
+groupProcessor.prototype.insertGroupWords = function() {
+	var keys = Object.keys(this.words)
 	
 	var bulk_group_words = [];
-
 	for(var i=0; i<keys.length; i++) {
 		var temp_tuple = [];
 		temp_tuple.push(parseInt(this.id));
@@ -132,12 +139,11 @@ messageProcessor.prototype.insertWords = function() {
 		temp_tuple.push(this.words[keys[i]]);
 		bulk_group_words.push(temp_tuple);
 	}
-	if(bulk_group_words.length > 0) {
+	if(bulk_group_words.length > 0) 
 		connection.insertBulkGroupWords(this, bulk_group_words);
-	}
 }
 
-messageProcessor.prototype.insertMessages = function() {
+groupProcessor.prototype.insertMessages = function() {
 	var keys = Object.keys(this.messages)
 	
 	var bulk_messages = [];
@@ -145,7 +151,6 @@ messageProcessor.prototype.insertMessages = function() {
 	for(var i=0; i<keys.length; i++) {
 		var temp_tuple = [];
 		temp_tuple.push(parseInt(this.id));
-		temp_tuple.push(this.name)
 		temp_tuple.push(keys[i]);
 		temp_tuple.push(this.messages[keys[i]].length);
 		bulk_messages.push(temp_tuple);			
@@ -157,5 +162,5 @@ messageProcessor.prototype.insertMessages = function() {
 }
 
 module.exports = {
-		messageProcessor: messageProcessor
+		uploadData: uploadData
 };

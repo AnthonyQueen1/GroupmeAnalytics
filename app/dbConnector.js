@@ -21,7 +21,7 @@ dbConnector.prototype.getAllMessages = function(object, lastmessageid, callback)
 }
 
 dbConnector.prototype.getGroupMessages = function(object, callback) {
-	this.connection.query('select * from groups where group_id = '+ object.id, 
+	this.connection.query('select * from messages where group_id = '+ object.id, 
 		function(err, res, data) {
 			if(err) console.log(err)
 			else {
@@ -37,14 +37,27 @@ dbConnector.prototype.getGroupMessages = function(object, callback) {
 
 dbConnector.prototype.insertMessage = function(object, message, length) {
 	grouptuple = { group_id: object.id, group_name: object.name, message_id: message.id, message_length: length}
-	this.connection.query('INSERT groups SET ?', grouptuple, function(err) {
+	this.connection.query('INSERT messages SET ?', grouptuple, function(err) {
 		if(err) console.log(err)
 	});
 }
 
+dbConnector.prototype.insertGroup = function(object, group) {
+	console.log(group)
+	this.connection.query('INSERT groups (group_id, group_name, message_count) VALUES ? ON DUPLICATE KEY UPDATE message_count = VALUES(message_count)', [[group]], function(err) {
+		if(err) {
+			console.log("\nError inserting Group: " + group + "\n")
+			console.log(err)
+		}
+	});
+}
+
 dbConnector.prototype.insertBulkMessages = function(object, messages) {
-	this.connection.query('INSERT groups (group_id, group_name, message_id, message_length) VALUES ?', [messages], function(err) {
-		if(err) console.log(err)
+	this.connection.query('INSERT messages (group_id, message_id, message_length) VALUES ?', [messages], function(err) {
+		if(err) {
+			console.log("\nError inserting bulk messages:\n")
+			console.log(err)
+		}
 		else {
 			if(object.debug) {
 				console.log("\nFinished inserting bulk messages of size " + messages.length)
@@ -56,37 +69,38 @@ dbConnector.prototype.insertBulkMessages = function(object, messages) {
 }
 
 dbConnector.prototype.insertBulkWords = function(object, wordtuples){
-	console.log("Starting Insert")
 	this.connection.query('INSERT wordcount (word, count) VALUES ? ON DUPLICATE KEY UPDATE count = count + VALUES(count)', [wordtuples], function(err) {
-		if(err) console.log(err)
+		if(err) {
+			console.log("\nError inserting bulk words:\n")
+			console.log(err)
+		}
 		else if(object.debug) {
 			console.log("\nFinished inserting bulk words of size " + wordtuples.length)
 			object.t1 = new Date().getTime()
-			console.log("Inserting bulk words took "  + (object.t1-object.t0)/1000 + " seconds\n")
+			console.log("Inserting bulk words took "  + (object.t1-object.t0)/1000 + " seconds")
 		}
 	});
 }
 
 dbConnector.prototype.insertBulkGroupWords = function(object, grouptuples) {
 	this.connection.query('INSERT INTO groupwordcount (group_id, word, count) VALUES ? ON DUPLICATE KEY UPDATE count = count + VALUES(count)', [grouptuples], function(err){
-		if (err) console.log(err);
+		if (err) {
+			console.log(err);
+		}
 		else if(object.debug) {
 			console.log("\nFinished inserting bulk group words of size " + grouptuples.length)
 			object.t1 = new Date().getTime()
-			console.log("Inserting bulk group words took "  + (object.t1-object.t0)/1000 + " seconds\n")
+			console.log("Inserting bulk group words took "  + (object.t1-object.t0)/1000 + " seconds")
 		}
 	});
 }
 
 dbConnector.prototype.getMostCommonWords = function(limit, callback) {
 	var limit = (limit<=500) ? limit: 10;
-	this.connection.query('SELECT * FROM wordcount ORDER BY count DESC LIMIT '+ limit, function(err, res, data) {
-		if (err) console.log(err);
-		callback.call(err, res);
-	});
+	this.connection.query('SELECT * FROM wordcount ORDER BY count DESC LIMIT '+ limit, callback);
 }
 
-dbConnector.prototype.get_most_common_words = function(id, limit, callback) {
+dbConnector.prototype.getMostUsedWords = function(id, limit, callback) {
 	var limit = (limit<=500) ? limit: 25;
 	if (id == 'all'){
 		this.connection.query('SELECT * FROM wordcount ORDER BY count DESC LIMIT '+ limit, callback);
@@ -95,8 +109,12 @@ dbConnector.prototype.get_most_common_words = function(id, limit, callback) {
 	}
 }
 
-dbConnector.prototype.get_group_list = function(callback) {
-	this.connection.query('SELECT DISTINCT group_id, group_name FROM groups', callback);
+dbConnector.prototype.filterOutCommonCase = function(callback){
+	this.connection.query('SELECT wc.word FROM commonCase c, wordcount wc WHERE c.common_word != wc.word', callback);
+}
+
+dbConnector.prototype.getGroupList = function(callback) {
+	this.connection.query('SELECT * FROM groups', callback);
 };
 
 module.exports = new dbConnector();

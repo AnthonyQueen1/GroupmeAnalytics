@@ -1,6 +1,6 @@
 <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <script src="js/index.get_tables.js"></script>
+    <script src="js/index.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.js"></script>
     <link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.css">
     <link rel="stylesheet"  href="bootstrap-3.3.7-dist/css/bootstrap-theme.min.css">
@@ -11,33 +11,39 @@
     <nav class="navbar navbar-default">
       <div class="container-fluid">
         <div class="navbar-header">
-          <a class="navbar-brand" href="">Groupme Analytics</a>
+          <a class="navbar-brand" href="/">Groupme Analytics</a>
         </div>
         <ul class="nav navbar-nav ">
-          <li><a href="http://oauth.groupme.com/oauth/authorize?client_id=Yi54ynn2lpE18xByvjSGySw2ua5bOj37RsJLpQHILHU1uEFe">Login</a></li>
+          <li class="login-button">
+				<script>
+				$(document).ready( function() {
+						$(".login-button").load("oauth.html");
+				});
+				</script>
+			</li>
         </ul>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
     </nav>    
     <div class="container">
         <div class="row">
-            <div class="col-sm-2">
+            <div class="col-3">
                 <label>Groups:</label>
-                <select class="form-control" id="groups-dropdown">
+                <select class="form-control selector" id="groups-dropdown">
                     <option value="all">ALL</option>
                 </select>
             </div>
-            <div class="col-sm-2">
+            <div class="col-3">
                 <label for="row-amt-select">Number of Rows:</label>
-                <select class="form-control" id="num-rows">
+                <select class="form-control selector" id="num-rows">
                     <option value="50">50</option>
                     <option value="100">100</option>
                     <option value="300">300</option>
                     <option value="500">500</option>
-                    <option value="1000">1000</option>
                 </select>
             </div>
-            <button class="btn btn-primary" id="refresh-table">refresh table</button>
+            <label>Remove common words: </label>
+            <input type="checkbox" name="Remove common words" class="selector">
             
         </div>
         <div class="row">
