@@ -38,4 +38,24 @@ router.get('/groupme/api/get-group-list', function(req, res) {
 	});
 });
 
+router.get('/groupme/api/total-words', function(req, res){
+	connection.getTotalWords(function(err, data) {
+		if(err) res.status(500).send(err)
+		else res.status(200).json(data)
+	});
+});
+
+router.get('/groupme/api/total-groups', function(req, res){
+	connection.getTotalGroups(function(err, data) {
+		if(err) res.status(500).send(err)
+		else res.status(200).json(data)
+	});
+});
+router.get('/groupme/api/total-messages', function(req, res){
+	connection.getTotalMessages(function(err, data) {
+		if(err) res.status(500).send(err)
+		else res.status(200).json(data)
+	});
+});
+
 module.exports = router;

@@ -11,8 +11,10 @@ $(function(){
 	// on startup
 	fillTable();
 
+	setLabels();
 	$('.selector').change(function(){
 		fillTable();
+		setLabels();
 	})
 
 	$('#remove-common')
@@ -40,4 +42,16 @@ var fillTableHelp = function(data){
 			string += "</td><td> " + data[i].count + "</td></tr>";
 			$('#table-body').append(string);
 		}
+}
+
+var setLabels = function(){
+	$.get('/groupme/api/total-groups', function(data){
+		$('#total-groups').text('Total groups: ' + data[0].count)
+	});
+	$.get('/groupme/api/total-messages', function(data){
+		$('#total-messages').text('Total messages: ' + data[0].count)
+	});
+	$.get('/groupme/api/total-words', function(data){
+		$('#total-words').text('Total words: ' + data[0].count)
+	});
 }

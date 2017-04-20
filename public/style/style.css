@@ -38,3 +38,12 @@ nav {
 	padding-left: 30px;
 	padding-right: 30px;
 }
+
+.row {
+	display: flex;
+	margin: auto;
+}
+
+.row-element {
+	flex: 1;
+}

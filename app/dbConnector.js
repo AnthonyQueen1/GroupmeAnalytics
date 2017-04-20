@@ -119,7 +119,19 @@ dbConnector.prototype.filterOutCommonCase = function(id, limit, callback){
 }
 
 dbConnector.prototype.getGroupList = function(callback) {
-	this.connection.query('SELECT * FROM groups', callback);
+	this.connection.query('SELECT * FROM groups ORDER BY group_name ASC', callback);
+};
+
+dbConnector.prototype.getTotalGroups = function(callback) {
+	this.connection.query('SELECT COUNT(*) AS count FROM groups', callback);
+};
+
+dbConnector.prototype.getTotalMessages = function(callback) {
+	this.connection.query('SELECT COUNT(*) AS count FROM messages', callback);
+};
+
+dbConnector.prototype.getTotalWords = function(callback) {
+	this.connection.query('SELECT sum(count) AS count FROM wordcount', callback);
 };
 
 module.exports = new dbConnector();
