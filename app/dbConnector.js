@@ -16,7 +16,14 @@ dbConnector.prototype.getAllMessages = function(object, lastmessageid, callback)
 	var formdata = (lastmessageid) ? requrl + '&before_id=' + lastmessageid : requrl;
 	request.get(formdata, function(err, res, data) {
 		if (err)	console.log(err)
-		else 	callback.call(object, JSON.parse(data))
+		else {
+      try {
+        var parsedData = JSON.parse(data)
+        callback.call(object, parsedData)
+      } catch (e) {
+        console.log(e)
+      }
+    }
 	})
 }
 

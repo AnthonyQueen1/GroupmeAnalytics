@@ -1,7 +1,7 @@
 // index.get_tables.js
 $(function(){
 	var cur_group_name = '';
-	$.get('/groupme/api/get-group-list', function(data){
+	$.get('/api/get-group-list', function(data){
 		group_names = data;
 		for (var i=0; i<group_names.length; i++){
 			$('#groups-dropdown').append("<option value="+ group_names[i].group_id + ">" + group_names[i].group_name + "</option>");
@@ -29,9 +29,9 @@ var fillTable = function() {
 	$("#table-body tr").remove();
 
 	if (remove_common){
-		$.get('/groupme/api/word-counts/'+ id + '/' + num + '/common', fillTableHelp);
+		$.get('/api/word-counts/'+ id + '/' + num + '/common', fillTableHelp);
 	} else {
-		$.get('/groupme/api/word-counts/'+ id + '/' + num, fillTableHelp);
+		$.get('/api/word-counts/'+ id + '/' + num, fillTableHelp);
 	}
 }
 
@@ -45,13 +45,13 @@ var fillTableHelp = function(data){
 }
 
 var setLabels = function(){
-	$.get('/groupme/api/total-groups', function(data){
+	$.get('/api/total-groups', function(data){
 		$('#total-groups').text('Total groups: ' + data[0].count)
 	});
-	$.get('/groupme/api/total-messages', function(data){
+	$.get('/api/total-messages', function(data){
 		$('#total-messages').text('Total messages: ' + data[0].count)
 	});
-	$.get('/groupme/api/total-words', function(data){
+	$.get('/api/total-words', function(data){
 		$('#total-words').text('Total words: ' + data[0].count)
 	});
 }

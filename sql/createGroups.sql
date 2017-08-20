@@ -4,7 +4,8 @@ drop table groupwordcount;
 drop table wordcount;
 
 create table commonCase (
-	common_word varchar (255)
+	common_word varchar (255),
+  PRIMARY KEY (common_word)
 ); 
 
 create table groups (
@@ -34,6 +35,7 @@ create table wordcount (
 	PRIMARY KEY(word)
 );
 
+insert into commonCase values ("the"), ("to");
 select * from groups limit 100;
 select * from groupwordcount limit 100;
 select * from wordcount limit 100;

@@ -46,11 +46,11 @@ function loadGroups(token) {
 						to_send.names.push(data.response[groups[j].id].name);
 					}
 					console.log(to_send)
-					$.post('/groupme/api/word-counts', to_send);
-					
-					//redirects
-					window.location.replace("/groupme");
-				}
+					$.post('/api/word-counts', to_send, function() {
+            //redirects
+            window.location.replace("/");
+          });
+        }
 			});
 		}
 	);

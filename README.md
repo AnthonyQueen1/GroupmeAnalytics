@@ -13,12 +13,12 @@ $ npm install
 
 to run the server:
 ```
-$ node gserve
+$ node server
 ```
 
 to add something to the dependencies:
 ```
-$ npm install -s <package name>
+$ npm i -S <package name>
 ```
 
-demo at https://antho.in/groupme
+demo at https://groupme.antho.in/
