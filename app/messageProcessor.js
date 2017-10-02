@@ -125,12 +125,12 @@ groupProcessor.prototype.insertGroupMessages = function() {
 	var keys = Object.keys(this.messages)
 	
 	var bulk_messages = [];
-	
 	for(var i=0; i<keys.length; i++) {
 		var temp_tuple = [];
 		temp_tuple.push(parseInt(this.id));
 		temp_tuple.push(keys[i]);
-		// temp_tuple.push(this.messages[keys[i]].length);
+		likes = (typeof this.messages[keys[i]] != 'undefined') ? this.messages[keys[i]].favorited_by.length : 0
+		temp_tuple.push(likes)
 		bulk_messages.push(temp_tuple);			
 	}
 	

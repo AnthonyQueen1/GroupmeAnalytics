@@ -28,7 +28,7 @@ dbConnector.prototype.getAllMessages = function(object, lastmessageid, callback)
 }
 
 dbConnector.prototype.getGroupMessages = function(object, callback) {
-  this.connection.query('select * from groupmessages where group_id = '+ object.id, 
+  this.connection.query('select message_id from groupmessages where group_id = '+ object.id, 
     function(err, res, data) {
       if(err) console.log(err)
       else {
@@ -53,7 +53,7 @@ dbConnector.prototype.insertGroup = function(object, group) {
 }
 
 dbConnector.prototype.insertBulkMessages = function(object, messages) {
-  this.connection.query('INSERT IGNORE groupmessages (group_id, message_id) VALUES ?', [messages], function(err) {
+  this.connection.query('INSERT IGNORE groupmessages (group_id, message_id, likes) VALUES ?', [messages], function(err) {
     if(err) {
       console.log("\nError inserting bulk messages:\n")
       console.log(err)

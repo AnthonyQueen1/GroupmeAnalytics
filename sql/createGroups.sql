@@ -1,49 +1,18 @@
--- drop table groups;
--- drop table messages;
--- drop table groupwordcount;
--- drop table wordcount;
-
--- create table commonCase (
---   common_word varchar (255),
---   PRIMARY KEY (common_word)
--- ); 
-
--- create table groups (
---   group_id INT, 
---   group_name varchar(255),
---   message_count INT,
---   PRIMARY KEY (group_id)
--- );
-
--- create table messages (
---   group_id INT, 
---   message_id varchar(32),
---   message_length INT,
---   PRIMARY KEY (group_id, message_id)
--- );
-
--- create table groupwordcount (
---   group_id INT,
---   word varchar(512),
---   count INT,
---   PRIMARY KEY(group_id, word)
--- );
-
-
 ---------------------
-CREATE TABLE commonCase (
+CREATE TABLE commoncase (
   common_word VARCHAR (255),
   PRIMARY KEY (common_word)
 ); 
 
+-- tables
 drop table groupmessages;
 drop table groupname;
 drop table wordcount;
--- need this one
 
 CREATE TABLE groupmessages (
   group_id INT,
   message_id VARCHAR(32),
+  likes INT,
   PRIMARY KEY (group_id, message_id)
 );
 
@@ -77,22 +46,22 @@ GROUP BY word
 ORDER BY count DESC, word ASC
 LIMIT 10;
 
--- gets all wordcounts no commonCASe
+-- gets all wordcounts no commoncase
 SELECT wc.word, sum(wc.count) AS count
 FROM wordcount wc 
 WHERE wc.word NOT IN (
-  SELECT common_word FROM commonCase
+  SELECT common_word FROM commoncase
   )
 GROUP BY wc.word
 ORDER BY count DESC, word ASC 
 LIMIT 100;
 
--- gets specific group, no commonCase
+-- gets specific group, no commoncase
 SELECT wc.word, sum(wc.count) AS count
 FROM wordcount wc
 NATURAL JOIN groupmessages gm 
 WHERE wc.word NOT IN (
-  SELECT common_word FROM commonCase
+  SELECT common_word FROM commoncase
   )
 AND gm.group_id = 27894476
 GROUP BY wc.word
@@ -111,35 +80,3 @@ SELECT COUNT(*) AS count FROM groupname;
 -- gets groups name / id
 SELECT * FROM groupname ORDER BY group_name ASC;
 
-
---- old queries -------------------
-
-insert into commonCase values ("the"), ("to");
-select * from groups limit 100;
-select * from groupwordcount limit 100;
-select * from wordcount limit 100;
-
-SELECT COUNT(*) AS count FROM groupmessages;
-
-insert Groups values(123,"Cats",456,14);
-insert into Groups set ? 
-
-select * from groupwordcount where group_id = 1 order by count desc limit 100;
-
-# get top words while removing common words
-SELECT wc.word, wc.count
-FROM wordcount wc LEFT JOIN commonCase cc
-ON wc.word = cc.common_word
-WHERE cc.common_word IS NULL
-ORDER BY wc.count DESC LIMIT 10;
-
-# get top words by group while removing common words
-SELECT gwc.word, gwc.count, gwc.group_id
-FROM groupwordcount gwc 
-LEFT JOIN commonCase cc
-ON gwc.word = cc.common_word
-WHERE cc.common_word IS NULL AND gwc.group_id = 1
-ORDER BY gwc.count DESC LIMIT 10;
-
-
----- testing
