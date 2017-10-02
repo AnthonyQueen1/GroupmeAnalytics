@@ -60,3 +60,4 @@ typings/
 server.js
 
 public/oauth.html
+'package-lock.json'
