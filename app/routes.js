@@ -3,6 +3,7 @@ var router  			= express.Router()
 var path    			= require('path')
 var connection = require('./dbConnector')
 var processor = require('./messageProcessor')
+var lda = require('./ldaProcessor')
 
 router.get('/user', function(req, res) {
 	res.sendFile(path.join(__dirname, '../public/user.html'))
@@ -55,6 +56,15 @@ router.get('/api/total-groups', function(req, res){
 router.get('/api/total-messages', function(req, res){
 	connection.getTotalMessages(function(err, data) {
 		if(err) res.status(500).send(err)
+		else res.status(200).json(data)
+	})
+})
+
+router.get('/api/lda', function(req, res) {
+	console.log('getting data from lda')
+	let group_id = req.query.group_id
+	lda.getTopics(group_id, function(err, data) {
+		if (err) res.status(500).send(err)
 		else res.status(200).json(data)
 	})
 })

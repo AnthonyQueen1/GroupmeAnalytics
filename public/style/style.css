@@ -47,3 +47,16 @@ nav {
 .row-element {
 	flex: 1;
 }
+
+div.panel-body > h4 > div.lambda {
+	float: right;
+	font-size: 75%;
+	color: #777;
+}
+
+ul.title-content-list > li { display: block; height: 25px; }
+ul.title-content-list > li > div.title { float: left }
+ul.title-content-list > li > div.content { float: right }
+#topics {
+	padding-top: 20px;
+}

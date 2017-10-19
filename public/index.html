@@ -1,69 +1,121 @@
 <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <script src="js/index.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.js"></script>
-    <link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.css">
-    <link rel="stylesheet"  href="bootstrap-3.3.7-dist/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" type="text/css" href="style/style.css">
-    <title>GM Analytics</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="js/index.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.js"></script>
+  <link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.css">
+  <link rel="stylesheet"  href="bootstrap-3.3.7-dist/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" type="text/css" href="style/style.css">
+  <title>GM Analytics</title>
 </head>
 <body>
-    <nav class="navbar navbar-default">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="/">Groupme Analytics</a>
-        </div>
-        <ul class="nav navbar-nav ">
-          <li class="login-button">
-				<script>
-				$(document).ready( function() {
-						$(".login-button").load("oauth.html");
-				});
-				</script>
-			</li>
-        </ul>
-        </div><!-- /.navbar-collapse -->
-      </div><!-- /.container-fluid -->
-    </nav>
+  <nav class="navbar navbar-inverse">
     <div class="container">
-        <div class="row-top">
-            <div class="col-3">
-                <label>Groups:</label>
-                <select class="form-control selector" id="groups-dropdown">
-                    <option value="all">ALL</option>
-                </select>
-            </div>
-            <div class="col-3">
-                <label for="row-amt-select">Number of Rows:</label>
-                <select class="form-control selector" id="num-rows">
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                    <option value="300">300</option>
-                    <option value="500">500</option>
-                </select>
-            </div>
-            <label>Remove common words: </label>
-            <input type="checkbox" name="Remove common words" class="selector" id="chk-remove-common">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/">Groupme Analytics</a>
+    </div>
+    <ul class="nav navbar-nav ">
+      <li class="login-button"></li>
+    </ul>
+    </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+  </nav>
+  <div class="container">
+    <ul class="nav nav-pills">
+      <li class="active"><a data-toggle="pill" href="#lda">LDA Topic Grouping</a></li>
+      <li><a data-toggle="pill" href="#counts">Word Counts</a></li>
+    </ul>
+    <br>
+    <br>
+    <div class="row">
+      <label class="row-element" id="total-words">Total words: </label>
+      <label class="row-element" id="total-groups">Total groups: </label>
+      <label class="row-element" id="total-messages">Total messages: </label>
+    </div>
+    <div class="tab-content">
+      <div id="counts" class="tab-pane">
+        <br>
+        <h4>
+          This page is simply counting how many times each word appears in a given group. 
+        </h4>
+        <br>
+        <div class="row">
+          <div class="col-sm-6">
+            <label>Groups:</label>
+            <select class="form-control selector" id="groups-dropdown">
+              <option value="all">ALL</option>
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label for="row-amt-select">Number of Rows:</label>
+            <select class="form-control selector" id="num-rows">
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="300">300</option>
+              <option value="500">500</option>
+            </select>
+          </div>
+          
         </div>
         <div class="row">
-            <label class="row-element" id="total-words">Total Words: </label>
-            <label class="row-element" id="total-groups">Total Groups: </label>
-            <label class="row-element" id="total-messages">Total Messages: </label>
+          <div class="col-md-12">
+            <label>Remove common words:   </label>
+            <input checked type="checkbox" name="Remove common words" class="selector" id="chk-remove-common">
+            
+          </div>
         </div>
+        <hr>
+        <h1>Word Counts</h1>
         <div class="row-data">
-            <h2 id="table-header"></h2>
-            <table class="table">
-                <thead>
-                    <th>#</th>
-                    <th>Word</th>
-                    <th>Count</th>
-                </thead>
-                <tbody id="table-body">
-                </tbody>
+          <h2 id="table-header"></h2>
+          <table class="table">
+            <thead>
+              <th>#</th>
+              <th>Word</th>
+              <th>Count</th>
+            </thead>
+            <tbody id="table-body">
+            </tbody>
 
-            </table>
+          </table>
 
         </div>
+      </div>
+
+      <div id="lda" class="tab-pane active">
+        <br>
+        <h4>
+          This page is for running a Latent Dirichlet Allocation with Variational Bayes on a specific GroupMe group. Please select a group to begin.
+        </h4>
+        <br>
+        <div class="row">
+          <div class="col-sm-6">
+            <label>Groups:</label>
+            <select class="form-control lda-selector" id="groups-dropdown-lda">
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label>Words per topic:</label>
+            <select class="form-control lda-selector" id="num-rows-lda">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+            </select>
+          </div>
+        </div>
+        <hr>
+        <h2 id="topic-title">Topics</h2>
+        <p class="text-info">
+          The words are on the left and their lambda values are on the right.
+        </p >
+        <p id='loading'>Loading. If we are running the LDA for a new group, this can take up to 30 seconds depending on the size of the group.</p>
+        <div id="topics" class="panel-group">
+        </div>
+      </div>
+
     </div>
+    
+  </div>
 
 </body>
